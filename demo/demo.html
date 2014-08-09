@@ -4,6 +4,7 @@
     <title>domevent-utils demo</title>
     <script type="text/javascript" src="zepto-1.1.4.js"></script>
     <script type="text/javascript" src="../src/domevent-utils.js"></script>
+    <script type="text/javascript" src="demo.js"></script>
     <link rel="stylesheet" href="demo.css">
 </head>
 <body>
@@ -11,7 +12,6 @@
 <fieldset id="profiles">
     <legend>Profiles</legend>
     <button data-profile="default">default</button>
-    <!-- further profiles will be generated here -->
 </fieldset>
 
 <div>
@@ -34,23 +34,23 @@
     var profiles = {
         'after':
             function(pid) {
-                return DomEventUtils.after(trigger[0], 'click', function(evt) {
-                    addLog(pid, evt);
+                return DomEventUtils.after('#trigger', 'click', function(evt) {
+                    Demo.log(pid, evt);
                 });
             },
 
         'after-defaultPrevented':
             function(pid) {
-                return DomEventUtils.after(trigger[0], 'click', function(evt) {
+                return DomEventUtils.after('#trigger', 'click', function(evt) {
                     evt.preventDefault();
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 }, false);
             },
 
         'afterAll':
             function(pid) {
                 return DomEventUtils.afterAll('click', function(evt) {
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 });
             },
 
@@ -58,155 +58,40 @@
             function(pid) {
                 return DomEventUtils.afterAll('click', function(evt) {
                     evt.preventDefault();
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 }, false);
             },
 
         'afterAllOnce':
             function(pid) {
                 return DomEventUtils.afterAllOnce('click', function(evt) {
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 });
             },
 
         'before':
             function(pid) {
-                return DomEventUtils.before(trigger[0], 'click', function(evt) {
-                    addLog(pid, evt);
+                return DomEventUtils.before('#trigger', 'click', function(evt) {
+                    Demo.log(pid, evt);
                 });
             },
 
         'beforeAll':
             function(pid) {
                 return DomEventUtils.beforeAll('click', function(evt) {
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 });
             },
 
         'beforeAllOnce':
             function(pid) {
                 return DomEventUtils.beforeAllOnce('click', function(evt) {
-                    addLog(pid, evt);
+                    Demo.log(pid, evt);
                 });
             }
     };
 
-    var handlers = [],
-        profilesContainer = $('#profiles'),
-        body = $('body'),
-        ancestor = $('#ancestor'),
-        trigger = $('#trigger'),
-        log = $('#log');
-
-    // ie8 EventListener polyfill (https://gist.github.com/jonathantneal/3748027)
-    !window.addEventListener&&function(e,t,n,r,i,s,o){e[r]=t[r]=n[r]=function(e,t){var n=this;o.unshift([n,e,t,function(e){e.currentTarget=n,e.preventDefault=function(){e.returnValue=!1},e.stopPropagation=function(){e.cancelBubble=!0},e.target=e.srcElement||n,t.call(n,e)}]),this.attachEvent("on"+e,o[0][3])},e[i]=t[i]=n[i]=function(e,t){for(var n=0,r;r=o[n];++n)if(r[0]==this&&r[1]==e&&r[2]==t)return this.detachEvent("on"+e,o.splice(n,1)[0][3])},e[s]=t[s]=n[s]=function(e){return this.fireEvent("on"+e.type,e)}}(Window.prototype,HTMLDocument.prototype,Element.prototype,"addEventListener","removeEventListener","dispatchEvent",[]);
-
-    function addLog(msg, data) {
-        $('<li>').html(msg).appendTo(log);
-        console.log(msg, data);
-    }
-
-    function clearLog() {
-        log.empty();
-    }
-
-    function reset() {
-        // reset hash
-        window.location.hash = '';
-        // remove listeners
-        for (var i=0; i < handlers.length; i++) {
-            var h = handlers[i];
-            h.unbind();
-        }
-        trigger.off();
-        clearLog();
-    }
-
-    function setProfile(profileId) {
-        var el = this;
-
-        // clear state
-        reset();
-        profilesContainer.find('button').removeClass('selected');
-        profilesContainer.find('button[data-profile='+profileId+']').addClass('selected');
-
-        // utility method to return a configured handler
-        function createClickHandler(el, msg, useCapture, preventDefaultFor) {
-            el = el[0] || el;
-            var handler, opts, unbind, type = 'click';
-
-            handler = function(evt) {
-                var t = evt.srcElement || evt.target;
-                if (t.hasAttribute('data-inscope') === false) return;
-                if (preventDefaultFor && t === preventDefaultFor) {
-                    evt.preventDefault();
-                }
-                addLog(msg, evt);
-            };
-
-            unbind = function() {
-                el.removeEventListener(type, handler, useCapture);
-            };
-
-            opts = {
-                'element': el,
-                'type': type,
-                'useCapture': useCapture || false,
-                'handler': handler,
-                'unbind': unbind
-            };
-
-            el.addEventListener(opts.type, opts.handler, opts.useCapture);
-            handlers.push(opts);
-        }
-
-        // body handlers
-        createClickHandler(body, '[&#8593;] body', false);
-        createClickHandler(body, '[&#8595;] body', true);
-
-        // ancestor handlers
-        $('*[data-type^="ancestor"]').forEach(function(item) {
-            var t = item.getAttribute('data-type');
-            createClickHandler(item, '[&#8593;] ' + t , false);
-            createClickHandler(item, '[&#8595;] ' + t, true);
-        });
-
-        // local handlers
-        $('*[data-type^="ancestor"] > a').forEach(function(item) {
-            var t = item.getAttribute('data-type');
-            createClickHandler(item, '[&#8593;] ' + t , false);
-            createClickHandler(item, '[&#8595;] ' + t, true);
-        });
-
-        // profile-specific setup
-        if (profiles[profileId]) {
-            var binding = profiles[profileId](profileId);
-            if (binding.handler) {
-                handlers.push(binding);
-            }
-        }
-    }
-
-    // render profiles
-    for (var pid in profiles) {
-        $('<button>').attr('data-profile', pid).html(pid).appendTo(profilesContainer);
-    }
-    // trap clicks within the profiles element
-    $('#profiles').click(function(evt) {
-        evt.stopPropagation();
-    })
-    $('#profiles button').click(function() {
-        // setup the triggers
-        setProfile(this.getAttribute('data-profile'));
-        clearLog();
-    });
-
-    // clear log action
-    $('#clear-log').click(clearLog);
-
-    // start 'er up
-    reset();
-    $('button[data-profile="default"]').click();
+    Demo.init(profiles);
 
 })(this);
 </script>
