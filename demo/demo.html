@@ -10,11 +10,12 @@
 <body>
 
 <fieldset id="profiles">
-    <legend>Profiles</legend>
-    <button data-profile="default">default</button>
+    <legend>Profile</legend>
+    <select></select>
 </fieldset>
 
-<div>
+<fieldset id="test-nodes">
+    <legend>Test nodes</legend>
     <div id="ancestor" data-inscope data-type="ancestor">
         ancestor
         <a href='#trigger' id="trigger" data-inscope data-type="trigger">trigger</a>
@@ -23,78 +24,13 @@
     <div id="ancestor-sibling" data-inscope data-type="ancestor-sibling">
         ancestor-sibling
     </div>
-<div>
+</fieldset>
+
+<fieldset id="log">
+    <legend>Log</legend>
     <button id="clear-log">Clear log</button>
-    <ol id="log"></ol>
-</div>
-
-<script type="text/javascript">
-(function(global) {
-
-    var profiles = {
-        'after':
-            function(pid) {
-                return DomEventUtils.after('#trigger', 'click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            },
-
-        'after-defaultPrevented':
-            function(pid) {
-                return DomEventUtils.after('#trigger', 'click', function(evt) {
-                    evt.preventDefault();
-                    Demo.log(pid, evt);
-                }, false);
-            },
-
-        'afterAll':
-            function(pid) {
-                return DomEventUtils.afterAll('click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            },
-
-        'afterAll-defaultPrevented':
-            function(pid) {
-                return DomEventUtils.afterAll('click', function(evt) {
-                    evt.preventDefault();
-                    Demo.log(pid, evt);
-                }, false);
-            },
-
-        'afterAllOnce':
-            function(pid) {
-                return DomEventUtils.afterAllOnce('click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            },
-
-        'before':
-            function(pid) {
-                return DomEventUtils.before('#trigger', 'click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            },
-
-        'beforeAll':
-            function(pid) {
-                return DomEventUtils.beforeAll('click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            },
-
-        'beforeAllOnce':
-            function(pid) {
-                return DomEventUtils.beforeAllOnce('click', function(evt) {
-                    Demo.log(pid, evt);
-                });
-            }
-    };
-
-    Demo.init(profiles);
-
-})(this);
-</script>
+    <ol></ol>
+</fieldset>
 
 </body>
 </html>

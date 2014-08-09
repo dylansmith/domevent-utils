@@ -2,6 +2,15 @@ body {
     font-family: monospace;
 }
 
+fieldset {
+    margin: 1em;
+}
+
+#profiles button.selected {
+    color: red;
+    font-weight: bold;
+}
+
 *[data-inscope] {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -12,18 +21,29 @@ body {
     display: inline-block;
     padding: 10px;
     margin: 10px;
-    border: 1px solid black;
+    border: 1px dashed black;
     text-decoration: none;
     cursor: pointer;
     color: #000;
+    background: #fff;
 }
 
 *[data-inscope]:hover {
-    background: #ffcccc;
-    border-color: #ff0000;
-    color: #ff0000;
+    background: rgba(0,0,255,0.1);
+    border-color: #0000ff;
+    border-style: solid;
+    color: #0000ff;
 }
 
-#profiles button.selected {
-    color: red;
+#trigger {
+    border-style: solid;
+    font-weight: bolder;
+}
+
+#log > textarea {
+    display: block;
+    width: 98%;
+    height: 15em;
+    margin-top:1em;
+    font-family: monospace;
 }

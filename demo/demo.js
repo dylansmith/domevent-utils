@@ -1,6 +1,6 @@
 (function(global, $) {
 
-    global.Demo = {
+    var Demo = {
 
         dom: {},
         handlers: [],
@@ -10,12 +10,23 @@
             var self = this;
             this.dom.body = $('body');
             this.dom.profiles = $('#profiles');
-            this.dom.log = $('#log');
+            this.dom.profileSelect = $('#profiles select');
+            this.dom.log = $('#log ol');
             this.dom.ancestor = $('#ancestor');
             this.dom.trigger = $('#trigger');
             this.dom.clearLog = $('#clear-log');
 
-            // bind clear log button
+            // bind UI handlers:
+            // trap clicks within the profiles element
+            this.dom.profiles.click(function(evt) {
+                evt.stopPropagation();
+            });
+            // profile switching
+            this.dom.profileSelect.change(function() {
+                self.setProfile($(this).val());
+                self.clearLog();
+            });
+            // clear log
             this.dom.clearLog.click(function() {
                 self.clearLog();
             });
@@ -47,22 +58,26 @@
             this.clearLog();
         },
 
-        renderProfiles: function(profiles, container) {
-            var self = this, pid;
-            // render profiles
-            for (pid in profiles) {
-                $('<button>').attr('data-profile', pid).html(pid).appendTo(container);
-            }
-            // trap clicks within the profiles element
-            container.click(function(evt) {
-                evt.stopPropagation();
-            });
+        renderProfiles: function(profiles) {
+            var self = this,
+                select = this.dom.profileSelect,
+                pid;
 
-            container.find('button').click(function() {
-                // setup the triggers
-                self.setProfile(this.getAttribute('data-profile'));
-                self.clearLog();
-            });
+            // empty
+            select.empty();
+
+            // add default
+            $('<option>').attr({
+                value: 'default',
+                selected: true
+            })
+            .html('default')
+            .appendTo(select);
+
+            // add profiles
+            for (pid in profiles) {
+                $('<option>').attr('value', pid).html(pid).appendTo(select);
+            }
 
             this.profiles = profiles;
         },
@@ -109,15 +124,8 @@
             createClickHandler(this.dom.body, '[&#8593;] body', false);
             createClickHandler(this.dom.body, '[&#8595;] body', true);
 
-            // ancestor handlers
-            $('*[data-type^="ancestor"]').forEach(function(item) {
-                var t = item.getAttribute('data-type');
-                createClickHandler(item, '[&#8593;] ' + t , false);
-                createClickHandler(item, '[&#8595;] ' + t, true);
-            });
-
-            // local handlers
-            $('*[data-type^="ancestor"] > a').forEach(function(item) {
+            // test node handlers
+            $('*[data-inscope]').forEach(function(item) {
                 var t = item.getAttribute('data-type');
                 createClickHandler(item, '[&#8593;] ' + t , false);
                 createClickHandler(item, '[&#8595;] ' + t, true);
@@ -132,5 +140,72 @@
             }
         }
     };
+
+    var profiles = {
+        'after':
+            function(pid) {
+                return DomEventUtils.after('#trigger', 'click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            },
+
+        'after-defaultPrevented':
+            function(pid) {
+                return DomEventUtils.after('#trigger', 'click', function(evt) {
+                    evt.preventDefault();
+                    Demo.log(pid, evt);
+                }, false);
+            },
+
+        'afterAll':
+            function(pid) {
+                return DomEventUtils.afterAll('click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            },
+
+        'afterAll-defaultPrevented':
+            function(pid) {
+                return DomEventUtils.afterAll('click', function(evt) {
+                    evt.preventDefault();
+                    Demo.log(pid, evt);
+                }, false);
+            },
+
+        'afterAllOnce':
+            function(pid) {
+                return DomEventUtils.afterAllOnce('click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            },
+
+        'before':
+            function(pid) {
+                return DomEventUtils.before('#trigger', 'click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            },
+
+        'beforeAll':
+            function(pid) {
+                return DomEventUtils.beforeAll('click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            },
+
+        'beforeAllOnce':
+            function(pid) {
+                return DomEventUtils.beforeAllOnce('click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            }
+    };
+
+    $(function() {
+        Demo.init(profiles);
+    });
+
+    // export as a global module
+    global.Demo = Demo;
 
 })(window, $);
