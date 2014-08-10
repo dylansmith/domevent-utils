@@ -1,4 +1,5 @@
-(function(global, $) {
+/* global $, DomEventUtils */
+(function(global, $, DomEventUtils) {
 
     var Demo = {
 
@@ -53,10 +54,10 @@
                             label;
 
                         if (t.hasAttribute('data-reporter') === false) return;
-                        label = (ct === document.body) ? 'body' : 
+                        label = (ct === document.body) ? 'body' :
                                 (ct.getAttribute('data-reporter') || ct.nodeName);
                         self.log([icon, label].join(' '), evt);
-                    }
+                    };
                 }.call(el); // run in context of element for IE without currentTarget
 
                 unbind = function() {
@@ -91,8 +92,7 @@
         },
 
         renderProfiles: function(profiles) {
-            var self = this,
-                select = this.dom.profileSelect,
+            var select = this.dom.profileSelect,
                 pid;
 
             // empty
@@ -107,7 +107,7 @@
             .appendTo(select);
 
             // add profiles
-            for (pid in profiles) {
+            for (pid in profiles) { //jshint forin:false
                 $('<option>').attr('value', pid).html(pid).appendTo(select);
             }
 
@@ -201,4 +201,4 @@
     // export as a global module
     global.Demo = Demo;
 
-})(window, $);
+})(window, $, DomEventUtils);
