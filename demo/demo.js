@@ -3,38 +3,82 @@
     var Demo = {
 
         dom: {},
-        handlers: [],
+        profileHandlers: [],
         profiles: null,
 
         init: function(profiles) {
             var self = this;
             this.dom.body = $('body');
-            this.dom.profiles = $('#profiles');
             this.dom.profileSelect = $('#profiles select');
             this.dom.log = $('#log ol');
-            this.dom.ancestor = $('#ancestor');
-            this.dom.trigger = $('#trigger');
             this.dom.clearLog = $('#clear-log');
 
             // bind UI handlers:
-            // trap clicks within the profiles element
-            this.dom.profiles.click(function(evt) {
+            // trap events from UI containers
+            var sp = function(evt) {
                 evt.stopPropagation();
-            });
+            };
+            $('#profiles, #log').click(sp).change(sp);
             // profile switching
-            this.dom.profileSelect.change(function() {
+            this.dom.profileSelect.change(function(evt) {
+                evt.stopPropagation();
                 self.setProfile($(this).val());
                 self.clearLog();
             });
+            // reporters
+            this.bindReporters();
             // clear log
             this.dom.clearLog.click(function() {
                 self.clearLog();
             });
 
             // start 'er up
-            this.renderProfiles(profiles, this.dom.profiles);
-            this.reset();
+            this.renderProfiles(profiles);
             this.setProfile('default');
+        },
+
+        bindReporters: function() {
+            var self = this;
+
+            // utility method to return a configured handler
+            function createHandler(el, useCapture) {
+                el = el[0] || el;
+                var handler, opts, unbind, type = 'click';
+
+                handler = function() {
+                    return function(evt) {
+                        var t = evt.srcElement || evt.target,
+                            ct = evt.currentTarget || this,
+                            icon = useCapture ? '[&#8595;]' : '[&#8593;]',
+                            label;
+
+                        if (t.hasAttribute('data-reporter') === false) return;
+                        label = (ct === document.body) ? 'body' : 
+                                (ct.getAttribute('data-reporter') || ct.nodeName);
+                        self.log([icon, label].join(' '), evt);
+                    }
+                }.call(el); // run in context of element for IE without currentTarget
+
+                unbind = function() {
+                    el.removeEventListener(type, handler, useCapture);
+                };
+
+                opts = {
+                    'element': el,
+                    'type': type,
+                    'useCapture': useCapture || false,
+                    'handler': handler,
+                    'unbind': unbind
+                };
+
+                el.addEventListener(opts.type, opts.handler, opts.useCapture);
+            }
+
+            // add click handlers to doc, body & reporters
+            $('body, *[data-reporter]').forEach(function(item) {
+                createHandler(item, false);
+                createHandler(item, true);
+            });
         },
 
         log: function(msg, data) {
@@ -44,18 +88,6 @@
 
         clearLog: function() {
            this.dom.log.empty();
-        },
-
-        reset: function() {
-            // reset hash
-            window.location.hash = '';
-            // remove listeners
-            for (var i=0; i < this.handlers.length; i++) {
-                var h = this.handlers[i];
-                h.unbind();
-            }
-            this.dom.trigger.off();
-            this.clearLog();
         },
 
         renderProfiles: function(profiles) {
@@ -83,59 +115,20 @@
         },
 
         setProfile: function(profileId) {
-            var self = this;
-
-            // clear state
-            this.reset();
-            this.dom.profiles.find('button').removeClass('selected');
-            this.dom.profiles.find('button[data-profile='+profileId+']').addClass('selected');
-
-            // utility method to return a configured handler
-            function createClickHandler(el, msg, useCapture, preventDefaultFor) {
-                el = el[0] || el;
-                var handler, opts, unbind, type = 'click';
-
-                handler = function(evt) {
-                    var t = evt.srcElement || evt.target;
-                    if (t.hasAttribute('data-inscope') === false) return;
-                    if (preventDefaultFor && t === preventDefaultFor) {
-                        evt.preventDefault();
-                    }
-                    self.log(msg, evt);
-                };
-
-                unbind = function() {
-                    el.removeEventListener(type, handler, useCapture);
-                };
-
-                opts = {
-                    'element': el,
-                    'type': type,
-                    'useCapture': useCapture || false,
-                    'handler': handler,
-                    'unbind': unbind
-                };
-
-                el.addEventListener(opts.type, opts.handler, opts.useCapture);
-                self.handlers.push(opts);
+            // reset hash
+            window.location.hash = '';
+            // clear log
+            this.clearLog();
+            // remove listeners
+            for (var i=0; i < this.profileHandlers.length; i++) {
+                var h = this.profileHandlers[i];
+                h.unbind();
             }
-
-            // body handlers
-            createClickHandler(this.dom.body, '[&#8593;] body', false);
-            createClickHandler(this.dom.body, '[&#8595;] body', true);
-
-            // test node handlers
-            $('*[data-inscope]').forEach(function(item) {
-                var t = item.getAttribute('data-type');
-                createClickHandler(item, '[&#8593;] ' + t , false);
-                createClickHandler(item, '[&#8595;] ' + t, true);
-            });
-
             // profile-specific setup
             if (this.profiles[profileId]) {
                 var binding = this.profiles[profileId](profileId);
                 if (binding.handler) {
-                    this.handlers.push(binding);
+                    this.profileHandlers.push(binding);
                 }
             }
         }

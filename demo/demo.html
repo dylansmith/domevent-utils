@@ -7,30 +7,30 @@
     <script type="text/javascript" src="demo.js"></script>
     <link rel="stylesheet" href="demo.css">
 </head>
-<body>
+<body data-reporter="body">
 
-<fieldset id="profiles">
-    <legend>Profile</legend>
-    <select></select>
-</fieldset>
+    <fieldset id="profiles">
+        <legend>Profile</legend>
+        <select></select>
+    </fieldset>
 
-<fieldset id="test-nodes">
-    <legend>Test nodes</legend>
-    <div id="ancestor" data-inscope data-type="ancestor">
-        ancestor
-        <a href='#trigger' id="trigger" data-inscope data-type="trigger">trigger</a>
-        <a href='#sibling' id="sibling" data-inscope data-type="sibling">sibling</a>
-    </div>
-    <div id="ancestor-sibling" data-inscope data-type="ancestor-sibling">
-        ancestor-sibling
-    </div>
-</fieldset>
+    <fieldset id="test-nodes">
+        <legend>Test nodes</legend>
+        <div id="ancestor" data-reporter="ancestor">
+            ancestor
+            <a href='#trigger' id="trigger" data-reporter="trigger">trigger</a>
+            <a href='#sibling' id="sibling" data-reporter="sibling">sibling</a>
+        </div>
+        <div id="ancestor-sibling" data-reporter="ancestor-sibling">
+            ancestor-sibling
+        </div>
+    </fieldset>
 
-<fieldset id="log">
-    <legend>Log</legend>
-    <button id="clear-log">Clear log</button>
-    <ol></ol>
-</fieldset>
+    <fieldset id="log">
+        <legend>Log</legend>
+        <button id="clear-log">Clear log</button>
+        <ol></ol>
+    </fieldset>
 
 </body>
 </html>

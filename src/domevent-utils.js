@@ -17,24 +17,26 @@
                 isEvt = (typeof evtOrType !== 'string'),
                 type = (isEvt) ? evtOrType.type : evtOrType;
 
-            handler = function(evt) {
-                var t = evt.srcElement || evt.target,
-                    fire = function() {
-                        callback(evt);
-                        if (runOnce === true) {
-                            unbind();
-                        }
-                    };
+            handler = function() {
+                return function(evt) {
+                    var t = evt.srcElement || evt.target,
+                        fire = function() {
+                            callback(evt);
+                            if (runOnce === true) {
+                                unbind();
+                            }
+                        };
 
-                if (filter(evt, t) && (isEvt ? evt === evtOrType : type === evt.type)) {
-                    if (delay >= 0) {
-                        setTimeout(fire, delay);
-                    }
-                    else {
-                        fire();
+                    if (filter(evt, t) && (isEvt ? evt === evtOrType : type === evt.type)) {
+                        if (delay >= 0) {
+                            setTimeout(fire, delay);
+                        }
+                        else {
+                            fire();
+                        }
                     }
                 }
-            };
+            }.call(el); // gives IE<9 access to evt.currentTarget via this
 
             unbind = function() {
                 el.removeEventListener(type, handler, useCapture);
