@@ -30,9 +30,17 @@ body *[data-reporter] {
 
 body *[data-reporter]:hover {
     background: rgba(0,0,255,0.1);
-    border-color: #0000ff;
+    border-color: #00f;
     border-style: solid;
-    color: #0000ff;
+    color: #00f;
+}
+
+body *[data-reporter].highlight {
+    border-color: #f00;
+    color: #f00;
+}
+body *[data-reporter].highlight:hover {
+    background: rgba(255,0,0,0.1);
 }
 
 #trigger {

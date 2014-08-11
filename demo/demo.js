@@ -115,83 +115,115 @@
         },
 
         setProfile: function(profileId) {
-            // reset hash
-            window.location.hash = '';
-            // clear log
-            this.clearLog();
-            // remove listeners
-            for (var i=0; i < this.profileHandlers.length; i++) {
-                var h = this.profileHandlers[i];
-                h.unbind();
-            }
-            // profile-specific setup
-            if (this.profiles[profileId]) {
-                var binding = this.profiles[profileId](profileId);
+            var profile = this.profiles[profileId] || null;
+            if (profile) {
+                // reset hash
+                window.location.hash = '';
+                // clear log
+                this.clearLog();
+                // clear highlights
+                $('body, *[data-reporter]').removeClass('highlight');
+                // remove listeners
+                for (var i=0; i < this.profileHandlers.length; i++) {
+                    var h = this.profileHandlers[i];
+                    h.unbind();
+                }
+                // profile-specific setup
+                var binding = profile.action(profileId, profile.scope);
                 if (binding.handler) {
                     this.profileHandlers.push(binding);
+                }
+                if (profile.scope) {
+                    $(profile.scope).addClass('highlight');
                 }
             }
         }
     };
 
     var profiles = {
-        'after':
-            function(pid) {
-                return DomEventUtils.after('#trigger', 'click', function(evt) {
+        'after': {
+            desc: 'do something after all other event handlers for a click event on a single node',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                return DomEventUtils.after(scope, 'click', function(evt) {
                     Demo.log(pid, evt);
                 });
-            },
-
-        'after-defaultPrevented':
-            function(pid) {
-                return DomEventUtils.after('#trigger', 'click', function(evt) {
+            }
+        },
+        'after.multi': {
+            desc: 'do something after all other event handlers for a click event on a set of nodes',
+            scope: '#trigger, #ancestor-sibling',
+            action: function(pid, scope) {
+                return DomEventUtils.after(scope, 'click', function(evt) {
+                    Demo.log(pid, evt);
+                });
+            }
+        },
+        'after.trigger.defaultPrevented': {
+            desc: 'preventDefault() after all other event handlers for a click event on a single node',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                return DomEventUtils.after(scope, 'click', function(evt) {
                     evt.preventDefault();
                     Demo.log(pid, evt);
-                }, false);
-            },
-
-        'afterAll':
-            function(pid) {
+                });
+            }
+        },
+        'afterAll': {
+            desc: 'do something after all other event handlers for a click event on any node',
+            scope: '*[data-reporter]',
+            action: function(pid) {
                 return DomEventUtils.afterAll('click', function(evt) {
                     Demo.log(pid, evt);
                 });
-            },
-
-        'afterAll-defaultPrevented':
-            function(pid) {
+            }
+        },
+        'afterAll.defaultPrevented': {
+            desc: 'preventDefault() after all other event handlers for a click event on any node',
+            scope: '*[data-reporter]',
+            action: function(pid) {
                 return DomEventUtils.afterAll('click', function(evt) {
                     evt.preventDefault();
                     Demo.log(pid, evt);
                 }, false);
-            },
-
-        'afterAllOnce':
-            function(pid) {
+            }
+        },
+        'afterAllOnce': {
+            desc: 'do something only once after all other event handlers for a click event on any node',
+            scope: '*[data-reporter]',
+            action: function(pid) {
                 return DomEventUtils.afterAllOnce('click', function(evt) {
                     Demo.log(pid, evt);
                 });
-            },
-
-        'before':
-            function(pid) {
-                return DomEventUtils.before('#trigger', 'click', function(evt) {
+            }
+        },
+        'before': {
+            desc: 'do something before all other event handlers for a click event on a single node',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                return DomEventUtils.before(scope, 'click', function(evt) {
                     Demo.log(pid, evt);
                 });
-            },
-
-        'beforeAll':
-            function(pid) {
+            }
+        },
+        'beforeAll': {
+            desc: 'do something before all other event handlers for a click event on any node',
+            scope: '*[data-reporter]',
+            action: function(pid) {
                 return DomEventUtils.beforeAll('click', function(evt) {
                     Demo.log(pid, evt);
                 });
-            },
-
-        'beforeAllOnce':
-            function(pid) {
+            }
+        },
+        'beforeAllOnce': {
+            desc: 'do something only once before all other event handlers for a click event on any node',
+            scope: '*[data-reporter]',
+            action: function(pid) {
                 return DomEventUtils.beforeAllOnce('click', function(evt) {
                     Demo.log(pid, evt);
                 });
             }
+        }
     };
 
     $(function() {
