@@ -76,7 +76,7 @@
             }
 
             // add click handlers to doc, body & reporters
-            $('body, *[data-reporter]').forEach(function(item) {
+            $('body, *[data-reporter]').each(function(i, item) {
                 createHandler(item, false);
                 createHandler(item, true);
             });
@@ -159,14 +159,14 @@
                 });
             }
         },
-        'after.trigger.defaultPrevented': {
+        'after.defaultPrevented': {
             desc: 'preventDefault() after all other event handlers for a click event on a single node',
             scope: '#trigger',
             action: function(pid, scope) {
                 return DomEventUtils.after(scope, 'click', function(evt) {
                     evt.preventDefault();
                     Demo.log(pid, evt);
-                });
+                }, false);
             }
         },
         'afterAll': {
