@@ -145,6 +145,21 @@
             desc: 'do something after all other event handlers for a click event on a single node',
             scope: '#trigger',
             action: function(pid, scope) {
+                $(scope).click(function() {
+                    Demo.log('handler 1');
+                });
+                $(scope).click(function() {
+                    setTimeout(function() {
+                        for (i=0; i < 9999; i++) {
+                            console.log(i);
+                        }
+                        Demo.log('handler 2');
+                    }, 0);
+                });
+                $(scope).click(function() {
+                    Demo.log('handler 3');
+                });
+
                 return DomEventUtils.after(scope, 'click', function(evt) {
                     Demo.log(pid, evt);
                 });
@@ -221,6 +236,47 @@
             action: function(pid) {
                 return DomEventUtils.beforeAllOnce('click', function(evt) {
                     Demo.log(pid, evt);
+                });
+            }
+        },
+        'navigateAfter.ok': {
+            desc: 'manually navigate the browser after all event handlers have run, if the event has not been prevented/stopped',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                return DomEventUtils.bind($(scope)[0], 'click', function(evt) {
+                    Demo.log(pid + ': deferring navigation to ' + this.href);
+                    DomEventUtils.navigateAfter(evt, this.href);
+                });
+            }
+        },
+        'navigateAfter.prevented': {
+            desc: 'manually navigate the browser after all event handlers have run, if the event has not been prevented/stopped',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                DomEventUtils.prevent($('#ancestor')[0], 'click');
+                return DomEventUtils.bind($(scope)[0], 'click', function(evt) {
+                    Demo.log(pid + ': deferring navigation to ' + this.href);
+                    DomEventUtils.navigateAfter(evt, this.href);
+                });
+            }
+        },
+        'makeResumable': {
+            desc: 'do something only once before all other event handlers for a click event on any node',
+            scope: '#trigger',
+            action: function(pid, scope) {
+                return DomEventUtils.bind($(scope)[0], 'click', function(e) {
+                    // pause (i.e. cancel & clone) the event
+                    var resumable = DomEventUtils.makeResumable(e);
+                    resumable.pause(function() {
+                        Demo.log(pid + ': event paused for 2000ms');
+                    });
+
+                    // wait for some async event to complete, then resume the event
+                    setTimeout(function() {
+                        resumable.resume(function() {
+                            Demo.log(pid + ': resumed event after 2000ms');
+                        });
+                    }, 2000);
                 });
             }
         }
